@@ -5,8 +5,9 @@ from django.contrib import messages
 from django.http import HttpResponse
 from django.core.mail import send_mail
 import datetime
-from reportlab.pdfgen import canvas  # <--- THIS IS THE NEW LINE
-
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import letter
+from reportlab.lib import colors
 from .models import User, FoodDonation, DonationClaim
 from .forms import CustomUserCreationForm, FoodDonationForm, VerificationForm, RestaurantProfileForm, DeliveryProfileForm
 # ==========================================
@@ -85,7 +86,33 @@ def verify_account(request):
 def restaurant_dashboard(request):
     if request.user.role != 'RESTAURANT':
         return render(request, 'main_app/error.html', {'message': "Access Denied"})
+        
     my_donations = FoodDonation.objects.filter(donor=request.user).order_by('-created_at')
+    delivered_food = my_donations.filter(status='DELIVERED')
+    
+    # --- ROBUST DYNAMIC IMPACT CALCULATION ---
+    total_meals = 0
+    total_carbon = 0.0
+    
+    for item in delivered_food:
+        # Safely convert quantity to an integer
+        try:
+            total_meals += int(item.quantity)
+        except (ValueError, TypeError):
+            pass # Ignore if it's broken data
+            
+        # Safely convert carbon to a float (decimal)
+        if item.estimated_weight_kg:
+            try:
+                total_carbon += float(item.estimated_weight_kg)
+            except (ValueError, TypeError):
+                pass
+
+    request.user.total_people_served = total_meals
+    request.user.total_carbon_saved = round(total_carbon, 2) # Keep it to 2 decimal places
+    request.user.save()
+    # ---------------------------------------
+
     return render(request, 'main_app/restaurant_dashboard.html', {'donations': my_donations})
 
 @login_required
@@ -128,6 +155,8 @@ def delete_donation(request, id):
     if donation.donor == request.user and donation.status == 'AVAILABLE':
         donation.delete()
     return redirect('restaurant_dashboard')
+
+
 
 # ==========================================
 # 3. NGO LOGIC
@@ -191,10 +220,6 @@ def confirm_distribution(request, claim_id):
         messages.success(request, "🎉 Amazing work! Food marked as received and distributed.")
         
     return redirect('ngo_dashboard')
-
-# ==========================================
-# 4. DELIVERY PARTNER LOGIC
-# ==========================================
 
 # ==========================================
 # 4. DELIVERY PARTNER LOGIC
