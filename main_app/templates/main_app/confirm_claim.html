@@ -1,0 +1,46 @@
+{% extends 'main_app/base.html' %}
+
+{% block content %}
+<div class="row justify-content-center mt-5">
+    <div class="col-md-8">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h4>Confirm Claim for: {{ food.food_name }}</h4>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 border-end">
+                        {% if food.image %}
+                            <img src="{{ food.image.url }}" class="img-fluid rounded mb-3" alt="Food Image">
+                        {% else %}
+                        <div class="bg-secondary text-white p-5 rounded mb-3 text-center">
+                        <p class="mb-0">No Image Available</p>
+                    </div>
+                        {% endif %}
+
+                    <p><strong>Quantity:</strong> {{ food.quantity }}</p>
+                    <p><strong>Expires:</strong> {{ food.expiry_time }}</p>
+                    <p><strong>Donor Address:</strong> {{ food.donor.address }}</p>
+                </div>
+
+                    <div class="col-md-6 d-flex flex-column justify-content-center">
+                        <h5 class="text-center mb-4">How will you receive this?</h5>
+                        
+                        <form method="post" class="d-grid gap-3">
+                            {% csrf_token %}
+                            
+                            <button type="submit" name="delivery_option" value="pickup" class="btn btn-outline-success btn-lg">
+                                🏃 I will Pick it up Myself
+                            </button>
+                            
+                            <button type="submit" name="delivery_option" value="delivery" class="btn btn-outline-warning btn-lg">
+                                🛵 Request Delivery Partner
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

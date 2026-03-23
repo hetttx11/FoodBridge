@@ -1,0 +1,226 @@
+{% extends 'main_app/base.html' %}
+
+{% block content %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<div class="container mt-4">
+
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-5 border-bottom pb-4">
+        <div>
+            <h2 class="fw-bold mb-1" style="color: var(--text-dark);">
+                <i class="fas fa-store text-success me-2"></i>{{ user.username }}'s Dashboard
+            </h2>
+            <p class="text-muted mb-0">Track your sustainability impact and manage AI forecasting data.</p>
+        </div>
+        
+        <div class="mt-3 mt-md-0 d-flex gap-3">
+            <a href="{% url 'restaurant_profile' %}" class="btn btn-outline-dark rounded-pill px-4 shadow-sm fw-bold">
+                <i class="fas fa-cog me-2"></i> Profile Settings
+            </a>
+            <a href="{% url 'donate_food' %}" class="btn btn-success rounded-pill px-4 shadow-sm fw-bold" style="background-color: var(--primary); border: none;">
+                <i class="fas fa-plus me-2"></i>New Donation
+            </a>
+        </div>
+    </div>
+    <div id="dashboard-data" 
+         data-people="{{ user.total_people_served|default:'0' }}" 
+         data-carbon="{{ user.total_carbon_saved|default:'0' }}">
+    </div>
+
+    <div class="row mb-5">
+        <div class="col-md-8 mb-4 mb-md-0">
+            <div class="glass-card p-4 h-100 border-0 shadow-sm">
+                <h4 class="mb-4 fw-bold text-dark">Impact Analytics</h4>
+                <div class="row align-items-center">
+                    <div class="col-md-6">
+                        <div style="position: relative; height:200px; width:100%">
+                            <canvas id="impactChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="p-3 rounded-circle me-3" style="background: #e9f5db; color: var(--primary);">
+                                <i class="fas fa-users fa-2x"></i>
+                            </div>
+                            <div>
+                                <h3 class="mb-0 fw-bold counter-people" style="color: var(--text-dark);">0</h3>
+                                <small class="text-muted fw-bold text-uppercase">Lives Impacted</small>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="p-3 rounded-circle me-3" style="background: #d1ecf1; color: #0c5460;">
+                                <i class="fas fa-cloud text-info fa-2x"></i>
+                            </div>
+                            <div>
+                                <h3 class="mb-0 fw-bold counter-carbon" style="color: var(--text-dark);">0</h3>
+                                <small class="text-muted fw-bold text-uppercase">Kg CO2 Prevented</small>
+                            </div>
+                        </div>
+                        <div class="mt-4">
+                             <p class="small text-muted mb-1 fw-bold text-uppercase">Sustainability Score</p>
+                             <div class="progress" style="height: 8px; border-radius: 10px;">
+                                 <div class="progress-bar" role="progressbar" style="width: 75%; background-color: var(--primary);"></div>
+                             </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="glass-card p-4 h-100 d-flex flex-column justify-content-center align-items-center text-center shadow-sm" style="background: linear-gradient(135deg, var(--primary), #059669); color: white; border-radius: 16px;">
+                <i class="fas fa-certificate fa-4x mb-3 text-warning drop-shadow"></i>
+                <h3 class="fw-bold">CSR Status</h3>
+                <p class="mb-4 opacity-75 small">Your contribution makes you eligible for Govt Tax Benefits.</p>
+                
+                {% if user.total_people_served and user.total_people_served > 0 %}
+                    <a href="{% url 'download_csr_certificate' %}" class="btn btn-light rounded-pill px-4 fw-bold text-success shadow">
+                        <i class="fas fa-download me-2"></i>Download Cert
+                    </a>
+                {% else %}
+                    <button disabled class="btn btn-outline-light rounded-pill px-4 fw-bold" style="background: rgba(255,255,255,0.1);">Locked 🔒</button>
+                    <small class="d-block mt-2 opacity-75">Donate to unlock</small>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="fw-bold text-dark mb-0">My Donations</h4>
+    </div>
+
+    <div class="glass-card p-0 overflow-hidden shadow-sm border-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0 align-middle">
+                <thead style="background-color: #f8fafc;">
+                    <tr>
+                        <th class="p-4 text-muted small text-uppercase fw-bold border-bottom-0">Food Item</th>
+                        <th class="p-4 text-muted small text-uppercase fw-bold border-bottom-0">Quantity</th>
+                        <th class="p-4 text-muted small text-uppercase fw-bold border-bottom-0">Posted On</th>
+                        <th class="p-4 text-muted small text-uppercase fw-bold border-bottom-0">Status</th>
+                        <th class="p-4 text-muted small text-uppercase fw-bold border-bottom-0 text-end">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in donations %}
+                    <tr>
+                        <td class="p-4">
+                            <strong class="text-dark">{{ item.food_name }}</strong>
+                        </td>
+                        <td class="p-4 text-muted">{{ item.quantity }}</td>
+                        <td class="p-4 text-muted">{{ item.created_at|date:"M d, Y" }}</td>
+                        <td class="p-4">
+                            {% if item.status == 'AVAILABLE' %}
+                                <span class="badge rounded-pill bg-success px-3 py-2">Available</span>
+                            {% elif item.status == 'RESERVED' %}
+                                <span class="badge rounded-pill bg-warning text-dark px-3 py-2">Claimed by NGO</span>
+                            {% elif item.status == 'CLAIMED' %}
+                                <span class="badge rounded-pill bg-secondary px-3 py-2">Delivered / Done</span>
+                            {% endif %}
+                        </td>
+                        <td class="p-4 text-end">
+                            {% if item.status == 'AVAILABLE' %}
+                                <form action="{% url 'delete_donation' item.id %}" method="post" onsubmit="return confirm('Are you sure you want to delete this?');">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3">🗑️ Delete</button>
+                                </form>
+                            {% else %}
+                                <span class="text-muted small fw-bold"><i class="fas fa-lock me-1"></i>Locked</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="text-center p-5 text-muted">
+                            <i class="fas fa-box-open fa-3x mb-3 opacity-25"></i>
+                            <h5 class="fw-bold">No donations yet</h5>
+                            <p class="small">Click 'New Donation' above to get started.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        
+        // 1. Fetch Data from the Hidden HTML Element
+        const dataElement = document.getElementById('dashboard-data');
+        const rawPeople = dataElement.getAttribute('data-people');
+        const rawCarbon = dataElement.getAttribute('data-carbon');
+        
+        // Convert to numbers safely
+        const peopleServed = parseFloat(rawPeople) || 0;
+        const carbonSaved = parseFloat(rawCarbon) || 0;
+
+        // 2. Initialize Counters
+        const animateValue = (selector, endValue) => {
+            const element = document.querySelector(selector);
+            if (!element) return;
+            
+            let startValue = 0;
+            let duration = 2000;
+            let range = endValue - startValue;
+            let current = startValue;
+            let increment = endValue > 0 ? Math.ceil(endValue / 100) : 0;
+            let stepTime = Math.abs(Math.floor(duration / (range || 1)));
+            
+            if (endValue === 0) {
+                element.innerHTML = 0;
+                return;
+            }
+
+            let timer = setInterval(function() {
+                current += increment;
+                if (current >= endValue) {
+                    element.innerHTML = endValue;
+                    clearInterval(timer);
+                } else {
+                    element.innerHTML = current;
+                }
+            }, 20);
+        };
+
+        animateValue('.counter-people', peopleServed);
+        animateValue('.counter-carbon', carbonSaved);
+
+        // 3. Initialize Chart
+        const chartElement = document.getElementById('impactChart');
+        if (chartElement) {
+            const ctx = chartElement.getContext('2d');
+            
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Distributed', 'Processing', 'Carbon'],
+                    datasets: [{
+                        data: [peopleServed, 10, carbonSaved], 
+                        backgroundColor: [
+                            '#10B981',  // Primary Emerald
+                            '#D1FAE5',  // Light Mint
+                            '#059669'   // Deep Emerald
+                        ],
+                        borderWidth: 0,
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false } 
+                    },
+                    cutout: '75%', 
+                    animation: {
+                        animateScale: true,
+                        animateRotate: true
+                    }
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

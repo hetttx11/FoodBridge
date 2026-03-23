@@ -1,0 +1,87 @@
+{% extends 'main_app/base.html' %}
+
+{% block content %}
+<style>
+    .enterprise-form input, 
+    .enterprise-form select, 
+    .enterprise-form textarea {
+        background-color: #ffffff;
+        border: 1px solid #cbd5e1;
+        border-radius: 6px;
+        padding: 10px 14px;
+        font-size: 0.95rem;
+        color: #0f172a;
+        width: 100%;
+    }
+    .enterprise-form input:focus, 
+    .enterprise-form select:focus, 
+    .enterprise-form textarea:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+        outline: none;
+    }
+    .form-label {
+        font-weight: 600;
+        color: #334155;
+        font-size: 0.85rem;
+        margin-bottom: 6px;
+    }
+</style>
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="bg-white rounded shadow-sm border p-4 p-md-5">
+                
+                <div class="mb-4 border-bottom pb-3">
+                    <h4 class="fw-bold text-dark mb-1"><i class="fas fa-store text-success me-2"></i>Business Profile</h4>
+                    <p class="text-muted small mb-0">Complete your profile to help our AI optimize delivery logistics.</p>
+                </div>
+
+                <form method="POST" class="enterprise-form">
+                    {% csrf_token %}
+                    
+                    <div class="row g-4">
+                        <div class="col-12">
+                            <label class="form-label">Contact Phone</label>
+                            {{ form.phone }}
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label">Full Address</label>
+                            {{ form.address }}
+                        </div>
+
+                        <div class="col-12 mt-4">
+                            <h6 class="fw-bold text-primary mb-3 border-bottom pb-2">Predictive Forecasting Data</h6>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">Business Type</label>
+                            {{ form.business_type }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Closing Time</label>
+                            {{ form.closing_time }}
+                            <small class="text-muted" style="font-size: 0.75rem;">Used to predict late-night surges.</small>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Peak Surplus Day</label>
+                            {{ form.peak_surplus_day }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Seating Capacity</label>
+                            {{ form.seating_capacity }}
+                        </div>
+                    </div>
+
+                    <div class="mt-5 pt-4 border-top d-flex justify-content-end gap-3">
+                        <a href="{% url 'restaurant_dashboard' %}" class="btn btn-light border px-4" style="font-weight: 500;">Cancel</a>
+                        <button type="submit" class="btn btn-aesthetic px-5" style="border-radius: 6px;">Save Profile</button>
+                    </div>
+                </form>
+                
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

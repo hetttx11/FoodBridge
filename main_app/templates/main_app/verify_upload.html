@@ -1,0 +1,63 @@
+{% extends 'main_app/base.html' %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="glass-card p-5 text-center shadow-sm">
+                
+                <i class="fas fa-shield-check fa-3x text-primary mb-3"></i>
+                <h3 class="fw-bold mb-2">Account Verification</h3>
+                
+                <p class="text-muted mb-4">
+                    {% if user.role == 'RESTAURANT' %}
+                        Please upload your <strong>FSSAI License</strong> or Business Registration.
+                    {% elif user.role == 'NGO' %}
+                        Please upload your <strong>NGO Registration Certificate</strong>.
+                    {% elif user.role == 'DELIVERY' %}
+                        Select your vehicle. Motorized vehicles require a <strong>Driving License</strong>.
+                    {% endif %}
+                </p>
+
+                <form method="POST" enctype="multipart/form-data" class="text-start">
+                    {% csrf_token %}
+                    
+                    {% if user.role == 'DELIVERY' %}
+                        <div class="mb-4">
+                            <label class="fw-bold small mb-2 text-dark">Select Vehicle Type</label>
+                            <select name="vehicle_type" id="vehicleSelect" class="form-select" required onchange="toggleUpload()">
+                                <option value="" disabled selected>Choose your vehicle...</option>
+                                <option value="CAR">Car / Van (License Required)</option>
+                                <option value="BIKE">Motorcycle / Scooter (License Required)</option>
+                                <option value="BICYCLE">Bicycle (No License Needed)</option>
+                                <option value="WALK">Walking (No License Needed)</option>
+                            </select>
+                        </div>
+                    {% endif %}
+
+                    <div class="mb-4" id="uploadSection">
+                        <label class="fw-bold small mb-2 text-dark">Upload Official Document (Image/PDF)</label>
+                        <input type="file" name="document" class="form-control" accept="image/*,.pdf">
+                    </div>
+
+                    <button type="submit" class="btn btn-aesthetic w-100 rounded-pill fw-bold py-2">Submit for Verification</button>
+                </form>
+                
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Hide the file upload if they select Bicycle or Walk
+    function toggleUpload() {
+        const select = document.getElementById('vehicleSelect');
+        const uploadDiv = document.getElementById('uploadSection');
+        if (select.value === 'BICYCLE' || select.value === 'WALK') {
+            uploadDiv.style.display = 'none';
+        } else {
+            uploadDiv.style.display = 'block';
+        }
+    }
+</script>
+{% endblock %}

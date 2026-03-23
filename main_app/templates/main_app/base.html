@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FoodBridge | Impact</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary: #10B981;     /* Fresh Emerald Green */
+            --secondary: #059669;   /* Deeper Emerald for hover */
+            --accent: #D1FAE5;      /* Soft Mint background accent */
+            --text-dark: #0F172A;   /* Slate 900 - Softer than pure black */
+            --text-muted: #64748B;  /* Slate 500 */
+            --bg-main: #F8FAFC;     /* Off-white background */
+            --glass-bg: rgba(255, 255, 255, 0.9);
+            --glass-border: rgba(255, 255, 255, 0.6);
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            color: var(--text-dark);
+            background-color: var(--bg-main);
+            min-height: 100vh;
+            overflow-x: hidden;
+            letter-spacing: -0.01em;
+            display: flex;
+            flex-direction: column;
+        }
+
+        h1, h2, h3, h4, h5 {
+            font-weight: 700;
+            letter-spacing: -0.03em;
+            color: var(--text-dark);
+        }
+
+        /* --- CLEAN GLASSMORPHISM --- */
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px; 
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .glass-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
+        }
+
+        /* --- NAVBAR --- */
+        .navbar {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid #E2E8F0;
+            padding: 1rem 0;
+            transition: all 0.3s ease;
+        }
+        
+        .navbar-brand {
+            font-weight: 800;
+            color: var(--text-dark) !important;
+            font-size: 1.5rem;
+        }
+        
+        .navbar-brand i {
+            color: var(--primary);
+        }
+
+        .nav-link {
+            color: var(--text-muted) !important;
+            font-weight: 600;
+            margin: 0 12px;
+            font-size: 0.95rem;
+            transition: color 0.2s ease;
+        }
+
+        .nav-link:hover {
+            color: var(--primary) !important;
+        }
+
+        /* --- BUTTONS --- */
+        .btn-aesthetic {
+            background: var(--primary);
+            color: white;
+            font-weight: 600;
+            border-radius: 8px; /* Modern rounded square */
+            padding: 10px 24px;
+            border: none;
+            box-shadow: 0 4px 6px rgba(16, 185, 129, 0.2);
+            transition: all 0.2s ease;
+        }
+
+        .btn-aesthetic:hover {
+            background: var(--secondary);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 12px rgba(16, 185, 129, 0.3);
+            color: white;
+        }
+
+        .btn-outline-dark {
+            border: 1px solid #CBD5E1;
+            color: var(--text-dark);
+            border-radius: 8px;
+            font-weight: 600;
+            background: white;
+        }
+
+        .btn-outline-dark:hover {
+            background: #F1F5F9;
+            color: var(--text-dark);
+            border-color: #94A3B8;
+        }
+
+        /* --- FIX DJANGO ERROR COLOR --- */
+        .alert-error {
+            color: #842029;
+            background-color: #f8d7da;
+            border-color: #f5c2c7;
+        }
+
+        /* --- FOOTER --- */
+        footer {
+            background: white;
+            border-top: 1px solid #E2E8F0;
+            color: var(--text-muted);
+            padding: 40px 0;
+            margin-top: auto;
+        }
+        
+        .text-white {
+            color: var(--text-dark) !important; /* Fixes footer text since background is now light */
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar navbar-expand-lg fixed-top">
+        <div class="container">
+            <a class="navbar-brand" href="{% url 'home' %}">
+                <i class="fas fa-seedling me-2"></i>FoodBridge
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto align-items-center">
+    
+                {% if user.is_authenticated %}
+                    {% if user.role == 'RESTAURANT' %}
+                        <li class="nav-item"><a class="nav-link" href="{% url 'donate_food' %}">Donate</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{% url 'restaurant_dashboard' %}">Dashboard</a></li>
+                    {% elif user.role == 'NGO' %}
+                        <li class="nav-item"><a class="nav-link" href="{% url 'ngo_dashboard' %}">Dashboard & Feed</a></li>
+                    {% elif user.role == 'DELIVERY' %}
+                        <li class="nav-item"><a class="nav-link" href="{% url 'delivery_dashboard' %}">Jobs</a></li>
+                    {% elif user.role == 'ADMIN' or user.is_superuser %}
+                        <li class="nav-item"><a class="nav-link fw-bold text-primary" href="{% url 'custom_admin_dashboard' %}"><i class="fas fa-shield-alt me-1"></i> Command Center</a></li>
+                    {% endif %}
+
+                    <li class="nav-item ms-3">
+                        <form action="{% url 'logout' %}" method="post">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-outline-dark btn-sm rounded-pill px-4">Logout</button>
+                        </form>
+                    </li>
+                    
+                {% else %}
+                    <li class="nav-item"><a class="nav-link" href="{% url 'home' %}">Home</a></li>
+                    <li class="nav-item"><a class="nav-link" href="{% url 'login' %}">Login</a></li>
+                    <li class="nav-item ms-2"><a class="nav-link btn-aesthetic" href="{% url 'register' %}">Get Started</a></li>
+                {% endif %}
+                
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div style="height: 80px;"></div>
+
+    {% if messages %}
+        <div class="container mt-3">
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-sm" role="alert">
+                    {% if message.tags == 'error' %}
+                        <i class="fas fa-exclamation-circle me-2"></i>
+                    {% elif message.tags == 'success' %}
+                        <i class="fas fa-check-circle me-2"></i>
+                    {% else %}
+                        <i class="fas fa-info-circle me-2"></i>
+                    {% endif %}
+                    
+                    {{ message }}
+                    
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+    <div class="container-fluid p-0">
+        {% block content %}
+        {% endblock %}
+    </div>
+
+    <footer>
+        <div class="container text-center">
+            <h3 class="mb-3 text-white">FoodBridge</h3>
+            <p class="mb-4" style="opacity: 0.8;">Connecting surplus to scarcity using technology.</p>
+            <div class="d-flex justify-content-center gap-3 mb-4">
+                <a href="#" class="text-white"><i class="fab fa-twitter fa-lg"></i></a>
+                <a href="#" class="text-white"><i class="fab fa-instagram fa-lg"></i></a>
+                <a href="#" class="text-white"><i class="fab fa-linkedin fa-lg"></i></a>
+            </div>
+            <p class="small mb-0" style="opacity: 0.6;">&copy; 2026 FoodBridge Initiative.</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script>
+        AOS.init({
+            duration: 800,
+            once: true,
+            offset: 100
+        });
+        setTimeout(function() {
+            let alerts = document.querySelectorAll('.alert');
+            alerts.forEach(function(alert) {
+                let bsAlert = new bootstrap.Alert(alert);
+                bsAlert.close();
+            });
+        }, 3000);
+    </script>
+</body>
+</html>

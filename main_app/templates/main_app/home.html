@@ -1,0 +1,167 @@
+{% extends 'main_app/base.html' %}
+
+{% block content %}
+<style>
+    .hero-section {
+        padding: 120px 0 80px;
+        background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .hero-blob {
+        position: absolute;
+        width: 600px;
+        height: 600px;
+        background: radial-gradient(circle, rgba(16,185,129,0.15) 0%, rgba(255,255,255,0) 70%);
+        top: -200px;
+        right: -100px;
+        border-radius: 50%;
+        z-index: 0;
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: 16px;
+        padding: 30px;
+        text-align: center;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05);
+        transition: transform 0.3s ease;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .feature-icon-wrapper {
+        width: 60px;
+        height: 60px;
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        margin-bottom: 20px;
+    }
+</style>
+
+<div class="hero-section">
+    <div class="hero-blob"></div>
+    <div class="container position-relative" style="z-index: 1;">
+        <div class="row align-items-center">
+            <div class="col-lg-6 mb-5 mb-lg-0" data-aos="fade-right">
+                <span class="badge bg-success text-white px-3 py-2 rounded-pill mb-3 shadow-sm" style="font-weight: 600; font-size: 0.85rem;">
+                    <i class="fas fa-leaf me-1"></i> AI-Powered Logistics
+                </span>
+                <h1 class="display-4 fw-bold mb-4" style="color: #0f172a; line-height: 1.2;">
+                    Bridging the gap between <span style="color: var(--primary);">Surplus</span> and <span style="color: var(--primary);">Scarcity</span>.
+                </h1>
+                <p class="lead text-muted mb-5" style="font-size: 1.15rem;">
+                    FoodBridge is an intelligent routing platform connecting restaurants with excess food to NGOs in real-time, powered by a community of volunteer delivery riders.
+                </p>
+                <div class="d-flex flex-column flex-sm-row gap-3">
+                    <a href="{% url 'register' %}" class="btn btn-aesthetic btn-lg rounded-pill px-5 shadow">Join the Network</a>
+                    <a href="#how-it-works" class="btn btn-outline-dark btn-lg rounded-pill px-5">How it Works</a>
+                </div>
+            </div>
+            
+            <div class="col-lg-5 offset-lg-1" data-aos="fade-left" data-aos-delay="200">
+                <div class="glass-card p-4 position-relative border-0 shadow-lg">
+                    <div class="bg-white p-3 rounded shadow-sm mb-3 d-flex align-items-center border" data-aos="fade-up" data-aos-delay="400">
+                        <div class="bg-success text-white p-2 rounded-circle me-3"><i class="fas fa-box"></i></div>
+                        <div>
+                            <h6 class="mb-0 fw-bold">50 Meals Donated</h6>
+                            <small class="text-muted">City Bakery • 2 mins ago</small>
+                        </div>
+                    </div>
+                    <div class="bg-white p-3 rounded shadow-sm mb-3 d-flex align-items-center border" data-aos="fade-up" data-aos-delay="500">
+                        <div class="bg-primary text-white p-2 rounded-circle me-3"><i class="fas fa-hands-helping"></i></div>
+                        <div>
+                            <h6 class="mb-0 fw-bold">Claimed by Hope NGO</h6>
+                            <small class="text-muted">Awaiting Delivery Partner</small>
+                        </div>
+                    </div>
+                    <div class="bg-white p-3 rounded shadow-sm d-flex align-items-center border" data-aos="fade-up" data-aos-delay="600">
+                        <div class="bg-warning text-dark p-2 rounded-circle me-3"><i class="fas fa-motorcycle"></i></div>
+                        <div>
+                            <h6 class="mb-0 fw-bold">Driver Assigned</h6>
+                            <small class="text-muted">ETA: 15 minutes</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container py-5" style="margin-top: -40px; position: relative; z-index: 2;">
+    <div class="row g-4">
+        <div class="col-md-4" data-aos="fade-up" data-aos-delay="100">
+            <div class="stat-card">
+                <h2 class="display-5 fw-bold text-success mb-2">2.5k</h2>
+                <p class="text-muted fw-bold text-uppercase mb-0 small">Meals Rescued</p>
+            </div>
+        </div>
+        <div class="col-md-4" data-aos="fade-up" data-aos-delay="200">
+            <div class="stat-card">
+                <h2 class="display-5 fw-bold text-info mb-2">840</h2>
+                <p class="text-muted fw-bold text-uppercase mb-0 small">Kg CO2 Prevented</p>
+            </div>
+        </div>
+        <div class="col-md-4" data-aos="fade-up" data-aos-delay="300">
+            <div class="stat-card">
+                <h2 class="display-5 fw-bold text-warning mb-2">150+</h2>
+                <p class="text-muted fw-bold text-uppercase mb-0 small">Active Partners</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="how-it-works" class="container py-5 my-5">
+    <div class="text-center mb-5" data-aos="fade-up">
+        <h2 class="fw-bold">A Three-Sided Ecosystem</h2>
+        <p class="text-muted">Seamlessly routing food from where it is to where it's needed most.</p>
+    </div>
+
+    <div class="row g-5">
+        <div class="col-md-4" data-aos="fade-up" data-aos-delay="100">
+            <div class="glass-card p-5 h-100 text-center border-0 bg-white">
+                <div class="feature-icon-wrapper bg-light text-danger mx-auto">
+                    <i class="fas fa-store"></i>
+                </div>
+                <h4 class="fw-bold mb-3">Restaurants</h4>
+                <p class="text-muted small mb-4">Post surplus food at the end of the day. Track your environmental impact and earn government-recognized CSR certificates for tax benefits.</p>
+            </div>
+        </div>
+
+        <div class="col-md-4" data-aos="fade-up" data-aos-delay="200">
+            <div class="glass-card p-5 h-100 text-center border-0 bg-white">
+                <div class="feature-icon-wrapper bg-light text-primary mx-auto">
+                    <i class="fas fa-hands-helping"></i>
+                </div>
+                <h4 class="fw-bold mb-3">NGOs & Shelters</h4>
+                <p class="text-muted small mb-4">Browse a live feed of available food in your city. Claim what your community needs and request a delivery partner with one click.</p>
+            </div>
+        </div>
+
+        <div class="col-md-4" data-aos="fade-up" data-aos-delay="300">
+            <div class="glass-card p-5 h-100 text-center border-0 bg-white">
+                <div class="feature-icon-wrapper bg-light text-warning mx-auto">
+                    <i class="fas fa-motorcycle"></i>
+                </div>
+                <h4 class="fw-bold mb-3">Delivery Riders</h4>
+                <p class="text-muted small mb-4">Act as the crucial bridge. Use our interactive map to accept nearby pickup requests, complete runs, and build your volunteer portfolio.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container mb-5" data-aos="zoom-in">
+    <div class="p-5 text-center rounded-4 shadow" style="background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white;">
+        <h2 class="fw-bold mb-3 text-white">Ready to make an impact?</h2>
+        <p class="mb-4 opacity-75 lead">Join our network of food heroes today.</p>
+        <a href="{% url 'register' %}" class="btn btn-light btn-lg rounded-pill px-5 text-success fw-bold shadow-sm">Create an Account</a>
+    </div>
+</div>
+{% endblock %}

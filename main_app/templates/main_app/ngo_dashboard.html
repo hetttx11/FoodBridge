@@ -1,0 +1,120 @@
+{% extends 'main_app/base.html' %}
+
+{% block content %}
+<div class="container py-5">
+    
+    <div class="d-flex justify-content-between align-items-center mb-5 border-bottom pb-4">
+        <div>
+            <h2 class="fw-bold mb-1" style="color: var(--text-dark);">
+                <i class="fas fa-hands-helping text-primary me-2"></i>NGO Dashboard
+            </h2>
+            <p class="text-muted mb-0">Browse the live feed and claim surplus food for your community.</p>
+        </div>
+    </div>
+
+    <h4 class="fw-bold text-dark mb-4"><i class="fas fa-broadcast-tower text-success me-2"></i>Live Food Feed</h4>
+    
+    <div class="row g-4 mb-5">
+        {% for food in available_food %}
+        <div class="col-md-6 col-lg-4">
+            <div class="glass-card h-100 d-flex flex-column border-0 shadow-sm rounded-4 overflow-hidden bg-white">
+                
+                <div class="p-3 border-bottom bg-light d-flex justify-content-between align-items-center">
+                    <span class="badge bg-success rounded-pill px-3 py-2"><i class="fas fa-leaf me-1"></i>Available</span>
+                    <small class="text-muted fw-bold">{{ food.created_at|timesince }} ago</small>
+                </div>
+
+                <div class="p-4 flex-grow-1">
+                    <h5 class="fw-bold text-dark mb-3">{{ food.food_name }}</h5>
+                    <p class="text-muted small mb-3">
+                        <i class="fas fa-store text-danger me-2"></i><strong>Donor:</strong> {{ food.donor.username }}
+                    </p>
+                    <div class="d-flex flex-wrap gap-2 mt-3">
+                        <span class="badge bg-light text-dark border"><i class="fas fa-box me-1"></i>Qty: {{ food.quantity }}</span>
+                        <span class="badge bg-light text-dark border"><i class="fas fa-weight-hanging me-1"></i>{{ food.estimated_weight_kg|default:"?" }} kg</span>
+                    </div>
+                </div>
+
+                <div class="p-3 border-top bg-light">
+                    <form action="{% url 'claim_donation' food.id %}" method="POST">
+                        {% csrf_token %}
+                        <select name="delivery_method" class="form-select form-select-sm mb-3 border-primary" style="font-weight: 500;" required>
+                            <option value="" disabled selected>How will you get this?</option>
+                            <option value="REQUEST_DRIVER">🛵 Request Volunteer Rider</option>
+                            <option value="SELF_PICKUP">🤝 We Will Pick It Up Ourselves</option>
+                        </select>
+                        <button type="submit" class="btn btn-aesthetic w-100 rounded-pill fw-bold" style="padding: 10px;" onclick="return confirm('Claim this food for your NGO?');">
+                            Claim Food
+                        </button>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center py-5">
+            <i class="fas fa-box-open fa-3x text-muted opacity-25 mb-3"></i>
+            <h5 class="fw-bold text-muted">No food available right now.</h5>
+            <p class="text-muted small">Check back later for new donations.</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    <h4 class="fw-bold text-dark mb-4 border-top pt-5">My Claim History</h4>
+    <div class="glass-card p-0 overflow-hidden shadow-sm border-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0 align-middle">
+                <thead style="background-color: #f8fafc;">
+                    <tr>
+                        <th class="p-4 text-muted small text-uppercase fw-bold border-bottom-0">Food Item</th>
+                        <th class="p-4 text-muted small text-uppercase fw-bold border-bottom-0">Donor (Restaurant)</th>
+                        <th class="p-4 text-muted small text-uppercase fw-bold border-bottom-0">Status</th>
+                        <th class="p-4 text-muted small text-uppercase fw-bold border-bottom-0 text-end">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for claim in my_claims %}
+                    <tr>
+                        <td class="p-4"><strong class="text-dark">{{ claim.food.food_name }}</strong></td>
+                        <td class="p-4 text-muted"><i class="fas fa-store text-danger me-2"></i>{{ claim.food.donor.username }}</td>
+                        <td class="p-4">
+                            {% if claim.food.status == 'CLAIMED' %}
+                                <span class="badge bg-warning text-dark"><i class="fas fa-motorcycle me-1"></i>Waiting for Rider</span>
+                            {% elif claim.food.status == 'SELF_PICKUP' %}
+                                <span class="badge bg-primary"><i class="fas fa-walking me-1"></i>You are picking up</span>
+                            {% elif claim.food.status == 'IN_TRANSIT' %}
+                                <span class="badge bg-info text-dark"><i class="fas fa-route me-1"></i>On the Way</span>
+                            {% elif claim.food.status == 'DELIVERED' %}
+                                <span class="badge bg-success"><i class="fas fa-check-circle me-1"></i>Received</span>
+                            {% else %}
+                                <span class="badge bg-secondary">{{ claim.food.status }}</span>
+                            {% endif %}
+                        </td>
+                        <td class="p-4 text-end">
+                            {% if claim.food.status != 'DELIVERED' %}
+                            <form action="{% url 'confirm_distribution' claim.id %}" method="POST">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-outline-success rounded-pill fw-bold" onclick="return confirm('Confirm you received and distributed this food?');">
+                                    <i class="fas fa-check-circle me-1"></i> Mark as Received
+                                </button>
+                            </form>
+                            {% else %}
+                                <span class="text-success fw-bold small"><i class="fas fa-check-double me-1"></i>Completed</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="p-5 text-center text-muted">
+                            <i class="fas fa-clipboard-list fa-2x mb-2 opacity-50"></i>
+                            <p class="small mb-0">You have no claim history.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

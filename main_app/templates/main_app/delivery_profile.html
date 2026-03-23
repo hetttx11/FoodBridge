@@ -1,0 +1,84 @@
+{% extends 'main_app/base.html' %}
+
+{% block content %}
+<style>
+    .enterprise-form input, 
+    .enterprise-form select, 
+    .enterprise-form textarea {
+        background-color: #ffffff;
+        border: 1px solid #cbd5e1;
+        border-radius: 6px;
+        padding: 10px 14px;
+        font-size: 0.95rem;
+        color: #0f172a;
+        width: 100%;
+    }
+    .enterprise-form input:focus, 
+    .enterprise-form select:focus, 
+    .enterprise-form textarea:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+        outline: none;
+    }
+    .form-label {
+        font-weight: 600;
+        color: #334155;
+        font-size: 0.85rem;
+        margin-bottom: 6px;
+    }
+</style>
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="bg-white rounded shadow-sm border p-4 p-md-5">
+                
+                <div class="mb-4 border-bottom pb-3">
+                    <h4 class="fw-bold text-dark mb-1"><i class="fas fa-id-card text-success me-2"></i>Rider Profile</h4>
+                    <p class="text-muted small mb-0">Help us optimize food routing by sharing your logistics capability.</p>
+                </div>
+
+                <form method="POST" class="enterprise-form">
+                    {% csrf_token %}
+                    
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <label class="form-label">Contact Phone</label>
+                            {{ form.phone }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Age</label>
+                            {{ form.age }}
+                        </div>
+
+                        <div class="col-12 mt-4">
+                            <h6 class="fw-bold text-primary mb-3 border-bottom pb-2">Logistics & Availability Data</h6>
+                        </div>
+
+                        <div class="col-md-12">
+                            <label class="form-label">Occupation</label>
+                            {{ form.occupation }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Vehicle Type</label>
+                            {{ form.vehicle_type }}
+                            <small class="text-muted" style="font-size: 0.75rem;">Determines weight limit.</small>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Preferred Shift</label>
+                            {{ form.preferred_shift }}
+                            <small class="text-muted" style="font-size: 0.75rem;">Helps predict rider availability.</small>
+                        </div>
+                    </div>
+
+                    <div class="mt-5 pt-4 border-top d-flex justify-content-end gap-3">
+                        <a href="{% url 'delivery_dashboard' %}" class="btn btn-light border px-4" style="font-weight: 500;">Cancel</a>
+                        <button type="submit" class="btn btn-aesthetic px-5" style="border-radius: 6px;">Save Profile</button>
+                    </div>
+                </form>
+                
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}  

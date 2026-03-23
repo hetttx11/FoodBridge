@@ -1,0 +1,168 @@
+{% extends 'main_app/base.html' %}
+
+{% block content %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<div class="container py-5">
+    
+    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-4">
+        <div>
+            <h2 class="fw-bold mb-1" style="color: #0F172A;">
+                <i class="fas fa-shield-alt text-primary me-2"></i>Platform Command Center
+            </h2>
+            <p class="text-muted mb-0">Manage trust, safety, and platform verification.</p>
+        </div>
+        <div class="d-flex gap-3 text-center">
+            <div class="bg-white border rounded px-4 py-2 shadow-sm">
+                <h4 class="fw-bold text-primary mb-0">{{ total_users }}</h4>
+                <small class="text-muted text-uppercase" style="font-size: 0.7rem; font-weight: 700;">Total Users</small>
+            </div>
+            <div class="bg-white border rounded px-4 py-2 shadow-sm">
+                <h4 class="fw-bold text-success mb-0">{{ total_food_rescued }}</h4>
+                <small class="text-muted text-uppercase" style="font-size: 0.7rem; font-weight: 700;">Items Delivered</small>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-5">
+        <div class="col-lg-8">
+            <div class="glass-card p-4 shadow-sm border-0 h-100 bg-white">
+                <h5 class="fw-bold text-dark mb-4"><i class="fas fa-chart-pie text-info me-2"></i>Real-Time Logistics Distribution</h5>
+                <div style="height: 300px; width: 100%; display: flex; justify-content: center;">
+                    <canvas id="logisticsChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="glass-card p-4 shadow-sm border-0 h-100 bg-white d-flex flex-column justify-content-center">
+                <h6 class="fw-bold text-muted text-uppercase mb-3">System Health</h6>
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between small mb-1">
+                        <span class="fw-bold">Platform Uptime</span>
+                        <span class="text-success fw-bold">99.9%</span>
+                    </div>
+                    <div class="progress" style="height: 8px;">
+                        <div class="progress-bar bg-success" role="progressbar" style="width: 100%;"></div>
+                    </div>
+                </div>
+                <div>
+                    <div class="d-flex justify-content-between small mb-1">
+                        <span class="fw-bold">Verification Queue Load</span>
+                        <span class="text-warning fw-bold">{{ pending_users|length }} Pending</span>
+                    </div>
+                    <div class="progress" style="height: 8px;">
+                        <div class="progress-bar bg-warning" role="progressbar" style="width: 25%;"></div>
+                    </div>
+                </div>
+                <hr class="my-4">
+                <p class="small text-muted mb-0"><i class="fas fa-lightbulb text-warning me-1"></i> <strong>ML Insight:</strong> Peak donation volume typically occurs between 10:00 PM and 11:30 PM based on restaurant closing times.</p>
+            </div>
+        </div>
+    </div>
+
+    <h4 class="fw-bold text-dark mb-4"><i class="fas fa-clipboard-check text-warning me-2"></i>Verification Queue</h4>
+    
+    <div class="glass-card p-0 overflow-hidden shadow-sm border-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0 align-middle">
+                <thead style="background-color: #f8fafc;">
+                    <tr>
+                        <th class="p-4 text-muted small text-uppercase fw-bold border-bottom-0">User Name</th>
+                        <th class="p-4 text-muted small text-uppercase fw-bold border-bottom-0">Role</th>
+                        <th class="p-4 text-muted small text-uppercase fw-bold border-bottom-0">Documents</th>
+                        <th class="p-4 text-muted small text-uppercase fw-bold border-bottom-0 text-end">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p_user in pending_users %}
+                    <tr>
+                        <td class="p-4">
+                            <strong class="text-dark">{{ p_user.username }}</strong>
+                            <span class="d-block small text-muted">Joined: {{ p_user.date_joined|date:"M d" }}</span>
+                        </td>
+                        <td class="p-4">
+                            {% if p_user.role == 'RESTAURANT' %}
+                                <span class="badge bg-danger"><i class="fas fa-store me-1"></i>Restaurant</span>
+                            {% elif p_user.role == 'NGO' %}
+                                <span class="badge bg-primary"><i class="fas fa-hands-helping me-1"></i>NGO</span>
+                            {% elif p_user.role == 'DELIVERY' %}
+                                <span class="badge bg-warning text-dark"><i class="fas fa-motorcycle me-1"></i>Driver ({{ p_user.vehicle_type }})</span>
+                            {% endif %}
+                        </td>
+                        <td class="p-4">
+                            {% if p_user.verification_document %}
+                                <a href="{{ p_user.verification_document.url }}" target="_blank" class="btn btn-sm btn-outline-info rounded-pill fw-bold">
+                                    <i class="fas fa-file-pdf me-1"></i> View Doc
+                                </a>
+                            {% else %}
+                                <span class="badge bg-light text-muted border"><i class="fas fa-check-circle me-1"></i>No Doc Needed</span>
+                            {% endif %}
+                        </td>
+                        <td class="p-4 text-end">
+                            <form action="{% url 'verify_user' p_user.id %}" method="POST">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-success rounded-pill fw-bold px-4 shadow-sm" onclick="return confirm('Approve {{ p_user.username }}?');">
+                                    <i class="fas fa-check me-1"></i> Approve
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-center p-5 text-muted">
+                            <i class="fas fa-shield-check fa-3x mb-3 text-success opacity-50"></i>
+                            <h5 class="fw-bold">Queue is empty!</h5>
+                            <p class="small">All users have been verified.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+
+{{ chart_data|json_script:"chart-data" }}
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const ctx = document.getElementById('logisticsChart').getContext('2d');
+        
+        // 3. Read the data from the hidden JSON tag
+        const rawData = JSON.parse(document.getElementById('chart-data').textContent);
+        
+        new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Available at Restaurant', 'Claimed (Waiting)', 'In Transit', 'Successfully Delivered'],
+                datasets: [{
+                    data: rawData,
+                    backgroundColor: [
+                        '#64748B', // Slate
+                        '#F59E0B', // Warning/Amber
+                        '#0EA5E9', // Info/Blue
+                        '#10B981'  // Success/Emerald
+                    ],
+                    borderWidth: 0,
+                    hoverOffset: 10
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'right',
+                        labels: {
+                            font: { family: "'Plus Jakarta Sans', sans-serif", size: 13 },
+                            padding: 20
+                        }
+                    }
+                },
+                cutout: '70%'
+            }
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,179 @@
+{% extends 'main_app/base.html' %}
+
+{% block content %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<div class="container py-5">
+    
+    <div class="d-flex justify-content-between align-items-center mb-5 border-bottom pb-4">
+        <div>
+            <h2 class="fw-bold mb-1" style="color: var(--text-dark);">
+                <i class="fas fa-motorcycle text-success me-2"></i>Delivery Hub
+            </h2>
+            <p class="text-muted mb-0">Find available food rescue runs near you.</p>
+        </div>
+        <div class="text-end d-flex flex-column align-items-end">
+            <span class="badge bg-light text-dark border p-2 shadow-sm rounded-pill fw-bold mb-2">
+                <i class="fas fa-star text-warning me-1"></i> {{ user.deliveries_completed }} Runs Completed
+            </span>
+            
+            <div class="d-flex gap-2">
+                <a href="{% url 'delivery_profile' %}" class="btn btn-sm btn-outline-dark rounded-pill fw-bold shadow-sm">
+                    <i class="fas fa-user-edit me-1"></i> Edit Profile
+                </a>
+                
+                {% if user.deliveries_completed > 0 %}
+                    <a href="{% url 'download_certificate' %}" class="btn btn-sm btn-outline-success rounded-pill fw-bold shadow-sm">
+                        <i class="fas fa-award me-1"></i> Get Certificate
+                    </a>
+                {% else %}
+                    <small class="text-muted mt-1" style="font-size: 0.75rem;">Complete 1 run for certificate</small>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="glass-card p-2 mb-5 shadow-sm border-0" style="border-radius: 16px;">
+        <div id="deliveryMap" style="height: 400px; width: 100%; border-radius: 12px; z-index: 1;"></div>
+    </div>
+    <h4 class="fw-bold text-dark mb-4"><i class="fas fa-broadcast-tower text-primary me-2"></i>Live Delivery Requests</h4>    
+    <div class="row g-4 mb-5">
+        {% for job in available_jobs %}
+        <div class="col-md-6 col-lg-4 job-card" 
+             data-lat="{{ job.food.donor.latitude|default:'23.0225' }}" 
+             data-lng="{{ job.food.donor.longitude|default:'72.5714' }}"
+             data-restaurant="{{ job.food.donor.username }}"
+             data-food="{{ job.food.food_name }}">
+            <div class="glass-card h-100 d-flex flex-column border-0 shadow-sm rounded-4 overflow-hidden bg-white">
+                
+                <div class="p-3 border-bottom bg-light d-flex justify-content-between align-items-center">
+                    <span class="badge bg-success rounded-pill px-3 py-2"><i class="fas fa-bolt me-1"></i>Ready Now</span>
+                    <small class="text-muted fw-bold">{{ job.claimed_at|timesince }} ago</small>
+                </div>
+
+                <div class="p-4 flex-grow-1">
+                    <h5 class="fw-bold text-dark mb-3">{{ job.food.food_name }}</h5>
+                    
+                    <div class="d-flex align-items-start mb-3">
+                        <div class="me-3 text-center">
+                            <i class="fas fa-store text-danger"></i>
+                            <div style="height: 25px; border-left: 2px dashed #cbd5e1; margin: 2px auto;"></div>
+                            <i class="fas fa-hands-helping text-primary"></i>
+                        </div>
+                        <div>
+                            <p class="mb-2 small"><strong>Pickup:</strong> {{ job.food.donor.username }}</p>
+                            <p class="mb-0 small"><strong>Dropoff:</strong> {{ job.ngo.username }}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex flex-wrap gap-2 mt-3">
+                        <span class="badge bg-light text-dark border"><i class="fas fa-box me-1"></i>{{ job.food.quantity }}</span>
+                        <span class="badge bg-light text-dark border"><i class="fas fa-weight-hanging me-1"></i>{{ job.food.estimated_weight_kg|default:"?" }} kg</span>
+                    </div>
+                </div>
+
+                <div class="p-3 border-top bg-light">
+                    <form action="{% url 'accept_delivery' job.id %}" method="POST">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-aesthetic w-100 rounded-pill fw-bold" style="padding: 12px;" onclick="return confirm('Accept this delivery run?');">
+                            Accept Job
+                        </button>
+                    </form>
+                </div>
+
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center py-5">
+            <i class="fas fa-route fa-3x text-muted opacity-25 mb-3"></i>
+            <h5 class="fw-bold text-muted">No pending deliveries right now.</h5>
+            <p class="text-muted small">You are all caught up! Wait for an NGO to request a rider.</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    <h4 class="fw-bold text-dark mb-4 border-top pt-5">My Active Runs</h4>
+    <div class="glass-card p-0 overflow-hidden shadow-sm border-0">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0 align-middle">
+                <thead style="background-color: #f8fafc;">
+                    <tr>
+                        <th class="p-4 text-muted small text-uppercase fw-bold border-bottom-0">Food Item</th>
+                        <th class="p-4 text-muted small text-uppercase fw-bold border-bottom-0">Pickup (Restaurant)</th>
+                        <th class="p-4 text-muted small text-uppercase fw-bold border-bottom-0">Dropoff (NGO)</th>
+                        <th class="p-4 text-muted small text-uppercase fw-bold border-bottom-0">Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for job in my_active_jobs %}
+                    <tr>
+                        <td class="p-4"><strong class="text-dark">{{ job.food.food_name }}</strong></td>
+                        <td class="p-4 text-muted"><i class="fas fa-store text-danger me-2"></i>{{ job.food.donor.username }}</td>
+                        <td class="p-4 text-muted"><i class="fas fa-hands-helping text-primary me-2"></i>{{ job.ngo.username }}</td>
+                        <td class="p-4">
+                            <form action="{% url 'complete_delivery' job.id %}" method="POST">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-aesthetic rounded-pill fw-bold" onclick="return confirm('Did you drop the food off at the NGO?');">
+                                    <i class="fas fa-check-circle me-1"></i> Mark Delivered
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="4" class="p-4 text-center text-muted small">You have no active runs.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</div>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // 1. Initialize map (Centered on default coordinates)
+        var map = L.map('deliveryMap').setView([23.0225, 72.5714], 12);
+
+        // 2. Add beautiful map tiles (CartoDB Positron gives it a clean, modern SaaS look)
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; OpenStreetMap contributors & CartoDB',
+            maxZoom: 19
+        }).addTo(map);
+
+        // 3. Custom Marker Icon matching our Green aesthetic
+        var foodIcon = L.divIcon({
+            className: 'custom-div-icon',
+            html: "<div style='background-color:#10B981; width:15px; height:15px; border-radius:50%; border:3px solid white; box-shadow: 0 0 5px rgba(0,0,0,0.5);'></div>",
+            iconSize: [15, 15],
+            iconAnchor: [7, 7]
+        });
+
+        // 4. Plot all available jobs on the map
+        const jobCards = document.querySelectorAll('.job-card');
+        const bounds = [];
+
+        jobCards.forEach(card => {
+            const lat = parseFloat(card.getAttribute('data-lat'));
+            const lng = parseFloat(card.getAttribute('data-lng'));
+            const restaurant = card.getAttribute('data-restaurant');
+            const food = card.getAttribute('data-food');
+
+            if (!isNaN(lat) && !isNaN(lng)) {
+                // Drop a pin
+                const marker = L.marker([lat, lng], {icon: foodIcon}).addTo(map);
+                
+                // Add a popup when clicked
+                marker.bindPopup(`<b>${restaurant}</b><br>Pick up: ${food}`);
+                
+                // Save coordinates to adjust map zoom later
+                bounds.push([lat, lng]);
+            }
+        });
+
+        // 5. Auto-zoom map to fit all pins
+        if (bounds.length > 0) {
+            map.fitBounds(bounds, {padding: [50, 50]});
+        }
+    });
+</script>
+{% endblock %}
